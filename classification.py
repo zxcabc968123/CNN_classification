@@ -1,4 +1,6 @@
 import tensorflow as tf
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)])
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -8,6 +10,9 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def main():
@@ -30,30 +35,29 @@ def main():
     #create nateworrk
     CNN=keras.Sequential(name='CNN')
     #add convolution layer filter 32 3*3 activation funtion relu
-    CNN.add(layers.Conv2D(32,(3,3),activation='relu',input_shape=(28,28,1)))
+    CNN.add(layers.Conv2D(10,(3,3),activation='relu',input_shape=(28,28,1)))
     #add pooling layer 2*2 
     CNN.add(layers.MaxPooling2D((2,2)))
     #add convolution layer filter 16 3*3 activation funtion relu
-    CNN.add(layers.Conv2D(16,(3,3),activation='relu'))
+    CNN.add(layers.Conv2D(5,(3,3),activation='relu'))
     #add pooling layer 2*2
     CNN.add(layers.MaxPooling2D((2,2)))
     #Flat matrix to enter DNN network
     CNN.add(layers.Flatten())
     #add DNN layer btw. to do multi_object(10) classification the last layer is 10 soft max 
-    CNN.add(layers.Dense(128,activation='relu'))
-    CNN.add(layers.Dense(64,activation='relu'))
+    CNN.add(layers.Dense(100,activation='relu'))
     CNN.add(layers.Dense(10,activation='softmax'))
+    #show the network structure 
+    CNN.summary()
     #define the optimizer(how to update parameter) and loss funtion:cross entropy 
     CNN.compile(optimizer=('Adam'),loss=keras.losses.sparse_categorical_crossentropy,metrics=['accuracy'])
-    CNN.fit(x_train,y_train,batch_size=1000,epochs=5)
+    CNN.fit(x_train,y_train,batch_size=1000,epochs=1)
     #test CNN on testdata
-    print('mean123:')
-    print(np.mean(CNN.predict_classes(x_train)==y_train))
-    print('mean:')
-    print(np.mean(CNN.predict_classes(x_test)==y_test))
+    print('test data mean:',np.mean(CNN.predict_classes(x_test)==y_test))
     print('save CNN')
     export_path='/home/allen/tensorflow_sample/SaveNet'
-    tf.saved_model.save(CNN, export_path)
+    CNN.save(export_path, save_format='tf')
+    print('Show input shape :', CNN.input_shape)
 
 if __name__ =="__main__":
     
